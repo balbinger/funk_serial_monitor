@@ -1,5 +1,6 @@
 const { SerialPort } = require('serialport');
 const { ReadLine } = require('@serialport/parser-readline');
+const { StatusModel } = require('./class/StatusModel');
 
 const { MockBinding } = require('@serialport/binding-mock');
 
@@ -22,5 +23,7 @@ port.on('open', () => {
 });
 
 port.on('data', (data) => {
+  const statusBody = new StatusModel('Leitstelle', 3);
+  console.log(statusBody);
   console.log(`Received data: ${data}`);
 });
