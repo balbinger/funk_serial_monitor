@@ -53,13 +53,13 @@ parser.on('data', (data) => {
 });
 
 //port.write('ATEO\r\n');
-port.write('AT\r\n');
+// port.write('AT\r\n');
 
-setInterval(() => {
-  port.write('AT\r\n');
-  atOkay = false;
-  awaitOk();
-}, 10 * 1000);
+// setInterval(() => {
+//   port.write('AT\r\n');
+//   atOkay = false;
+//   awaitOk();
+// }, 10 * 1000);
 
 function awaitOk() {
   console.log('AWAITOK', atOkay);
