@@ -33,13 +33,13 @@ var receivedData = [];
 
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 parser.on('data', (data) => {
-  if (data.includes('OK') == true) {
-    if (awaitOk == false) {
-      console.log('set okay');
-      atOkay = true;
-      // port.write('AT+CTSP=1,3,130\r\n');
-    }
-  }
+  //   if (data.includes('OK') == true) {
+  //     if (awaitOk == false) {
+  //       console.log('set okay');
+  //       atOkay = true;
+  //       // port.write('AT+CTSP=1,3,130\r\n');
+  //     }
+  //   }
 
   if (data.startsWith('+CTSDSR')) {
     statusEmpfang = true;
