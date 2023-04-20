@@ -1,6 +1,7 @@
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
-const { StatusModel } = require('./class/StatusModel');
+
+const { logger } = require('./logger');
 
 const dateFormat = require('date-format');
 
@@ -125,7 +126,7 @@ async function readStatus() {
       type: 'STATUS',
       timestamp: `${dateFormat.asString(
         dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
-        new Date()
+        new Date(),
       )}`,
       sender: 'SerialStatus',
       authorization: 'SerialStatus',
@@ -139,14 +140,15 @@ async function readStatus() {
       .post(
         `https://${alamosHostname}/rest/external/http/status/v2`,
         JSON.stringify(alamosObj),
-        postOptions
+        postOptions,
       )
       .then((res) => {
+        logger.info(`Status für Adresse: ${sender} Status: ${status}`);
         //console.log(res);
       })
       .catch((err) => {
-        console.error(err.response.data.status);
-        console.error(err.response.data.message);
+        logger.error(err.response.data.status);
+        logger.error(err.response.data.message);
       });
     receivedData = [];
     statusEmpfang = false;
