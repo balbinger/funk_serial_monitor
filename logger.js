@@ -21,6 +21,10 @@ const logger = winston.createLogger({
       maxSize: '40m',
       maxFiles: 30,
     }),
+    new winston.transports.Stream({
+      stream: process.stderr,
+      level: 'debug',
+    }),
   ],
 });
 
