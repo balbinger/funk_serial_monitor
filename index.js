@@ -23,11 +23,16 @@ const alamosSendData =
 var statusEmpfang = false;
 var atOkay = false;
 
-const port = new SerialPort({
-  //binding: MockBinding,
-  path: serialPath,
-  baudRate: baudRate,
-});
+const port = new SerialPort(
+  {
+    //binding: MockBinding,
+    path: serialPath,
+    baudRate: baudRate,
+  },
+  (err) => {
+    logger.error(err);
+  },
+);
 
 var receivedData = [];
 
