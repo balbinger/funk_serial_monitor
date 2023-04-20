@@ -53,7 +53,7 @@ parser.on('data', (data) => {
 });
 
 //port.write('ATEO\r\n');
-// port.write('AT\r\n');
+port.write('AT+CTSP=1,3,130\r\n');
 
 // setInterval(() => {
 //   port.write('AT\r\n');
