@@ -30,7 +30,9 @@ const port = new SerialPort(
     baudRate: baudRate,
   },
   (err) => {
-    logger.error(err);
+    if (err) {
+      logger.error(err);
+    }
   },
 );
 
