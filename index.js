@@ -33,7 +33,7 @@ const port = new SerialPort(
     if (err) {
       logger.error(err);
     }
-  },
+  }
 );
 
 var receivedData = [];
@@ -59,8 +59,8 @@ parser.on('data', (data) => {
   console.log(data);
 });
 
-//port.write('ATEO\r\n');
-port.write('AT+CTSP=1,3,130\r\n');
+port.write('ATE0\n');
+port.write('AT+CTSP=1,3,130\n');
 
 // setInterval(() => {
 //   port.write('AT\r\n');
@@ -133,7 +133,7 @@ async function readStatus() {
       type: 'STATUS',
       timestamp: `${dateFormat.asString(
         dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
-        new Date(),
+        new Date()
       )}`,
       sender: 'SerialStatus',
       authorization: 'SerialStatus',
@@ -147,7 +147,7 @@ async function readStatus() {
       .post(
         `https://${alamosHostname}/rest/external/http/status/v2`,
         JSON.stringify(alamosObj),
-        postOptions,
+        postOptions
       )
       .then((res) => {
         logger.info(`Status für Adresse: ${sender} Status: ${status}`);
