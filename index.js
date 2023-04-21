@@ -143,6 +143,8 @@ async function readStatus() {
       },
     };
 
+    logger.info(alamosObj);
+
     axios
       .post(
         `https://${alamosHostname}/rest/external/http/status/v2`,
