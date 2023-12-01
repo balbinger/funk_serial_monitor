@@ -3,17 +3,26 @@ const { ReadlineParser } = require('@serialport/parser-readline');
 
 const { logger } = require('./logger');
 
+const express = require('express');
+const app = express();
+
 const dateFormat = require('date-format');
 
 const axios = require('axios');
-//const { MockBinding } = require('@serialport/binding-mock');
+const { MockBinding } = require('@serialport/binding-mock');
 
-//MockBinding.createPort('/dev/ROBOT', { echo: true, record: true });
+MockBinding.createPort('/dev/ROBOT', {
+  echo: true,
+  record: true,
+});
 
 require('dotenv').config();
 
+const PORT = process.env.WEB_PORT;
 const baudRate = parseInt(process.env.BAUD_RATE);
 const serialPath = process.env.SERIAL_PORT;
+
+const ipAddresses = process.env.IP_ACL;
 
 const alamosHostname = process.env.FE2_HOSTNAME;
 const alamosPort = process.env.FE2_PORT;
@@ -33,7 +42,7 @@ const port = new SerialPort(
     if (err) {
       logger.error(err);
     }
-  }
+  },
 );
 
 var receivedData = [];
@@ -133,7 +142,7 @@ async function readStatus() {
       type: 'STATUS',
       timestamp: `${dateFormat.asString(
         dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
-        new Date()
+        new Date(),
       )}`,
       sender: 'SerialStatus',
       authorization: 'SerialStatus',
@@ -149,7 +158,7 @@ async function readStatus() {
       .post(
         `https://${alamosHostname}/rest/external/http/status/v2`,
         JSON.stringify(alamosObj),
-        postOptions
+        postOptions,
       )
       .then((res) => {
         logger.info(`Status für Adresse: ${sender} Status: ${status}`);
@@ -163,6 +172,24 @@ async function readStatus() {
     statusEmpfang = false;
   }
 }
+
+let ipAcl = function (req, res, next) {
+  const remoteAddress = req.socket.remoteAddress;
+  logger.info(req.socket.remoteAddress);
+  if (ipAddresses.includes(remoteAddress)) {
+    next();
+  } else {
+    res.status(401).send();
+  }
+};
+
+app.get('/send/9', ipAcl, (req, res) => {
+  port.write('TEST\r\n');
+  res.status(200).send();
+});
+app.listen(PORT, '0.0.0.0', () => {
+  logger.info(`Server listening on Port ${PORT}`);
+});
 
 // port.on('data', (data) => {
 //   const statusBody = new StatusModel(
