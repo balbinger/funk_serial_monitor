@@ -185,6 +185,10 @@ let ipAcl = function (req, res, next) {
 
 app.get('/send/9', ipAcl, (req, res) => {
   port.write('TEST\r\n');
+  port.write('AT+CTSDS=\r\n');
+  port.write(
+    'AT+CTDCT=Any, [<gateway/repeater address>], [<MNI>], [<serviced GSSI>] ',
+  );
   res.status(200).send();
 });
 app.listen(PORT, '0.0.0.0', () => {
