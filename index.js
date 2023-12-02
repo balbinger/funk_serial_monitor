@@ -10,6 +10,7 @@ const dateFormat = require('date-format');
 
 const axios = require('axios');
 const { MockBinding } = require('@serialport/binding-mock');
+const { route } = require('express/lib/application');
 
 MockBinding.createPort('/dev/ROBOT', {
   echo: true,
@@ -26,11 +27,14 @@ const ipAddresses = process.env.IP_ACL;
 
 const alamosHostname = process.env.FE2_HOSTNAME;
 const alamosPort = process.env.FE2_PORT;
+const statusIssi = process.env.STATUS_ISSI;
 const alamosSendData =
   String(process.env.FE2_SEND_DATA).toLowerCase() === 'true';
 
 var statusEmpfang = false;
 var atOkay = false;
+
+var routeActive = Boolean('false');
 
 const port = new SerialPort(
   {
@@ -42,7 +46,7 @@ const port = new SerialPort(
     if (err) {
       logger.error(err);
     }
-  },
+  }
 );
 
 var receivedData = [];
@@ -68,8 +72,8 @@ parser.on('data', (data) => {
   console.log(data);
 });
 
-port.write('ATE0\n');
-port.write('AT+CTSP=1,3,130\n');
+port.write('ATE0\r\n');
+port.write('AT+CTSP=1,3,130\r\n');
 
 // setInterval(() => {
 //   port.write('AT\r\n');
@@ -142,7 +146,7 @@ async function readStatus() {
       type: 'STATUS',
       timestamp: `${dateFormat.asString(
         dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
-        new Date(),
+        new Date()
       )}`,
       sender: 'SerialStatus',
       authorization: 'SerialStatus',
@@ -158,7 +162,7 @@ async function readStatus() {
       .post(
         `https://${alamosHostname}/rest/external/http/status/v2`,
         JSON.stringify(alamosObj),
-        postOptions,
+        postOptions
       )
       .then((res) => {
         logger.info(`Status für Adresse: ${sender} Status: ${status}`);
@@ -183,13 +187,30 @@ let ipAcl = function (req, res, next) {
   }
 };
 
-app.get('/send/9', ipAcl, (req, res) => {
-  port.write('TEST\r\n');
-  port.write('AT+CTSDS=\r\n');
-  port.write(
-    'AT+CTDCT=Any, [<gateway/repeater address>], [<MNI>], [<serviced GSSI>] ',
-  );
+const toAscii = (string) =>
+  string
+    .split('')
+    .map((char) => char.charCodeAt(0))
+    .join(' ');
+
+app.get('/activate', ipAcl, (req, res) => {
+  routeActive = Boolean('true');
   res.status(200).send();
+});
+
+app.get('/send/9', ipAcl, (req, res) => {
+  console.log(routeActive);
+
+  if (routeActive == true) {
+    const ctrlZ = Buffer.from([26]);
+    port.write('AT+CTSP=1,3,130\r\n');
+    port.write('AT+CTSDS=13,0\r\n');
+    port.write(`AT+CMGS=${statusIssi},16\r\n800B${ctrlZ}`);
+    routeActive = false;
+    res.status(200).send();
+  } else {
+    res.status(400).send('error');
+  }
 });
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server listening on Port ${PORT}`);
