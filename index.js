@@ -36,6 +36,8 @@ var atOkay = false;
 
 var routeActive = Boolean('false');
 
+const ctrlZ = Buffer.from([26]);
+
 const port = new SerialPort(
   {
     //binding: MockBinding,
@@ -46,7 +48,7 @@ const port = new SerialPort(
     if (err) {
       logger.error(err);
     }
-  }
+  },
 );
 
 var receivedData = [];
@@ -146,7 +148,7 @@ async function readStatus() {
       type: 'STATUS',
       timestamp: `${dateFormat.asString(
         dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
-        new Date()
+        new Date(),
       )}`,
       sender: 'SerialStatus',
       authorization: 'SerialStatus',
@@ -162,7 +164,7 @@ async function readStatus() {
       .post(
         `https://${alamosHostname}/rest/external/http/status/v2`,
         JSON.stringify(alamosObj),
-        postOptions
+        postOptions,
       )
       .then((res) => {
         logger.info(`Status für Adresse: ${sender} Status: ${status}`);
@@ -212,6 +214,24 @@ app.get('/send/9', ipAcl, (req, res) => {
     res.status(400).send('error');
   }
 });
+
+app.get('/send/sds', ipAcl, (req, res) => {
+  port.write('AT+CMGS="Zieladresse"\r', (err) => {
+    if (err) {
+      return logger.error('Fehler beim Senden der Zieladresse: ', err.message);
+    }
+    logger.info('Zieladresse gesendet');
+
+    // Nachrichtentext senden
+    port.write('Nachrichtentext' + ctrlZ, (err) => {
+      if (err) {
+        return logger.error('Fehler beim Senden der Nachricht: ', err.message);
+      }
+      logger.info('Nachricht gesendet');
+    });
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server listening on Port ${PORT}`);
 });
