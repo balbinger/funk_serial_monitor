@@ -65,14 +65,6 @@ var receivedData = [];
 
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 parser.on('data', (data) => {
-  //   if (data.includes('OK') == true) {
-  //     if (awaitOk == false) {
-  //       console.log('set okay');
-  //       atOkay = true;
-  //       // port.write('AT+CTSP=1,3,130\r\n');
-  //     }
-  //   }
-
   if (data.startsWith('+CTSDSR')) {
     statusEmpfang = true;
   }
@@ -86,12 +78,6 @@ parser.on('data', (data) => {
 
 port.write('ATE0\r\n');
 port.write('AT+CTSP=1,3,130\r\n');
-
-// setInterval(() => {
-//   port.write('AT\r\n');
-//   atOkay = false;
-//   awaitOk();
-// }, 10 * 1000);
 
 function awaitOk() {
   console.log('AWAITOK', atOkay);
