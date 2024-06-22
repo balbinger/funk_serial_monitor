@@ -1,7 +1,10 @@
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 
-const { logger } = require('./logger');
+const { logger } = require('./helper/logger');
+const qs = require('qs');
+
+const { sendTextSDS } = require('./helper');
 
 const express = require('express');
 const app = express();
@@ -10,7 +13,6 @@ const dateFormat = require('date-format');
 
 const axios = require('axios');
 const { MockBinding } = require('@serialport/binding-mock');
-const { route } = require('express/lib/application');
 
 MockBinding.createPort('/dev/ROBOT', {
   echo: true,
@@ -18,16 +20,24 @@ MockBinding.createPort('/dev/ROBOT', {
 });
 
 require('dotenv').config();
+require('./config');
 
 const PORT = process.env.WEB_PORT;
 const baudRate = parseInt(process.env.BAUD_RATE);
 const serialPath = process.env.SERIAL_PORT;
+const system = process.env.SYSTEM;
+const accesskey = process.env.SYSTEM_ACCESSKEY;
+
+const diveraStatusAPI = 'https://app.divera247.com/api/fms';
+const diveraLastAlarmAPI = 'https://app.divera247.com/api/last-alarm';
 
 const ipAddresses = process.env.IP_ACL;
+const issiWhiteList = process.env.ISSI_WHITELIST;
 
 const alamosHostname = process.env.FE2_HOSTNAME;
 const alamosPort = process.env.FE2_PORT;
 const statusIssi = process.env.STATUS_ISSI;
+const mockEnabled = process.env.MOCK_ENABLED;
 const alamosSendData =
   String(process.env.FE2_SEND_DATA).toLowerCase() === 'true';
 
@@ -40,7 +50,7 @@ const ctrlZ = Buffer.from([26]);
 
 const port = new SerialPort(
   {
-    //binding: MockBinding,
+    binding: mockEnabled ? MockBinding : null,
     path: serialPath,
     baudRate: baudRate,
   },
@@ -144,38 +154,76 @@ async function readStatus() {
       },
     };
 
-    const alamosObj = {
-      type: 'STATUS',
-      timestamp: `${dateFormat.asString(
-        dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
-        new Date(),
-      )}`,
-      sender: 'SerialStatus',
-      authorization: 'SerialStatus',
-      data: {
-        status: status,
-        address: sender,
-      },
-    };
+    switch (system) {
+      case 'ALAMOS':
+        const alamosObj = {
+          type: 'STATUS',
+          timestamp: `${dateFormat.asString(
+            dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
+            new Date(),
+          )}`,
+          sender: 'SerialStatus',
+          authorization: 'SerialStatus',
+          data: {
+            status: status,
+            address: sender,
+          },
+        };
 
-    logger.info(alamosObj);
+        logger.info(alamosObj);
 
-    axios
-      .post(
-        `https://${alamosHostname}/rest/external/http/status/v2`,
-        JSON.stringify(alamosObj),
-        postOptions,
-      )
-      .then((res) => {
-        logger.info(`Status für Adresse: ${sender} Status: ${status}`);
-        //console.log(res);
-      })
-      .catch((err) => {
-        logger.error(err.response.data.status);
-        logger.error(err.response.data.message);
-      });
-    receivedData = [];
-    statusEmpfang = false;
+        axios
+          .post(
+            `https://${alamosHostname}/rest/external/http/status/v2`,
+            JSON.stringify(alamosObj),
+            postOptions,
+          )
+          .then((res) => {
+            logger.info(`Status für Adresse: ${sender} Status: ${status}`);
+            //console.log(res);
+          })
+          .catch((err) => {
+            logger.error(err.response.data.status);
+            logger.error(err.response.data.message);
+          });
+        receivedData = [];
+        statusEmpfang = false;
+        break;
+      case 'DIVERA':
+        const response = await axios.get(diveraLastAlarmAPI);
+        const lastAlarmData = response.data;
+
+        const SDSMessage = `${lastAlarmData.address} ${lastAlarmData.lat} ${lastAlarmData.lng}`;
+
+        if (['3', '9'].includes(status) && issiWhiteList.includes(sender)) {
+          sendTextSDS(port, SDSMessage, sender);
+        }
+        const data = qs.stringify({
+          accesskey: accesskey,
+          status: status,
+          vehicle_ric: sender,
+        });
+        const config = {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        };
+
+        axios
+          .post(diveraStatusAPI, data, config)
+          .then((res) => {
+            logger.info(`Status für Adresse: ${sender} Status: ${status}`);
+            //console.log(res);
+          })
+          .catch((err) => {
+            logger.error(err.response.data.status);
+            logger.error(err.response.data.message);
+          });
+        logger.info(res);
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -216,20 +264,8 @@ app.get('/send/9', ipAcl, (req, res) => {
 });
 
 app.get('/send/sds', ipAcl, (req, res) => {
-  port.write('AT+CMGS="Zieladresse"\r', (err) => {
-    if (err) {
-      return logger.error('Fehler beim Senden der Zieladresse: ', err.message);
-    }
-    logger.info('Zieladresse gesendet');
-
-    // Nachrichtentext senden
-    port.write('Nachrichtentext' + ctrlZ, (err) => {
-      if (err) {
-        return logger.error('Fehler beim Senden der Nachricht: ', err.message);
-      }
-      logger.info('Nachricht gesendet');
-    });
-  });
+  sendTextSDS(port, 'VLLSLDSD', '1111111');
+  res.sendStatus(200);
 });
 
 app.listen(PORT, '0.0.0.0', () => {

@@ -1,9 +1,18 @@
 const winston = require('winston');
+const { combine, timestamp, json } = winston.format;
+const moment = require('moment-timezone');
 require('winston-daily-rotate-file');
+
+const timezone = () => {
+  return moment(new Date())
+    .tz('Europe/Berlin')
+    .format('YYYY-MM-DDTHH:mm:ss.SSS');
+  return new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' });
+};
 
 const logger = winston.createLogger({
   level: 'info',
-  format: winston.format.json(),
+  format: combine(timestamp({ format: timezone }), json()),
   defaultMeta: { service: 'funk_serial_monitor' },
   transports: [
     new winston.transports.DailyRotateFile({
