@@ -4,7 +4,7 @@ const { ReadlineParser } = require('@serialport/parser-readline');
 const { logger } = require('./helper/logger');
 const qs = require('qs');
 
-const { sendTextSDS } = require('./helper');
+const { sendTextSDS, getDiveraAlarmData } = require('./helper');
 
 const express = require('express');
 const app = express();
@@ -26,7 +26,7 @@ const PORT = process.env.WEB_PORT;
 const baudRate = parseInt(process.env.BAUD_RATE);
 const serialPath = process.env.SERIAL_PORT;
 const system = process.env.SYSTEM;
-const accesskey = process.env.SYSTEM_ACCESSKEY;
+const accessKey = process.env.SYSTEM_ACCESSKEY;
 
 const diveraStatusAPI = 'https://app.divera247.com/api/fms';
 const diveraLastAlarmAPI = 'https://app.divera247.com/api/last-alarm';
@@ -46,11 +46,12 @@ var atOkay = false;
 
 var routeActive = Boolean('false');
 
+console.log(serialPath);
 const ctrlZ = Buffer.from([26]);
 
 const port = new SerialPort(
   {
-    binding: mockEnabled ? MockBinding : null,
+    //binding: mockEnabled ? MockBinding : null,
     path: serialPath,
     baudRate: baudRate,
   },
@@ -58,7 +59,7 @@ const port = new SerialPort(
     if (err) {
       logger.error(err);
     }
-  },
+  }
 );
 
 var receivedData = [];
@@ -66,6 +67,7 @@ var receivedData = [];
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 parser.on('data', (data) => {
   if (data.startsWith('+CTSDSR')) {
+    console.log('STATUSEMPFANG');
     statusEmpfang = true;
   }
   if (statusEmpfang == true) {
@@ -140,13 +142,14 @@ async function readStatus() {
       },
     };
 
+    console.log(system);
     switch (system) {
       case 'ALAMOS':
         const alamosObj = {
           type: 'STATUS',
           timestamp: `${dateFormat.asString(
             dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
-            new Date(),
+            new Date()
           )}`,
           sender: 'SerialStatus',
           authorization: 'SerialStatus',
@@ -162,7 +165,7 @@ async function readStatus() {
           .post(
             `https://${alamosHostname}/rest/external/http/status/v2`,
             JSON.stringify(alamosObj),
-            postOptions,
+            postOptions
           )
           .then((res) => {
             logger.info(`Status für Adresse: ${sender} Status: ${status}`);
@@ -176,36 +179,29 @@ async function readStatus() {
         statusEmpfang = false;
         break;
       case 'DIVERA':
-        const response = await axios.get(diveraLastAlarmAPI);
-        const lastAlarmData = response.data;
+        //const response = await axios.get(diveraLastAlarmAPI);
+        //const lastAlarmData = response.data;
+        //const SDSMessage = `${lastAlarmData.address} ${lastAlarmData.lat} ${lastAlarmData.lng}`;
 
-        const SDSMessage = `${lastAlarmData.address} ${lastAlarmData.lat} ${lastAlarmData.lng}`;
-
-        if (['3', '9'].includes(status) && issiWhiteList.includes(sender)) {
+        if ([3, 9].includes(status) && issiWhiteList.includes(sender)) {
+          const SDSMessage = await getDiveraAlarmData();
+          console.log('SDS');
           sendTextSDS(port, SDSMessage, sender);
         }
-        const data = qs.stringify({
-          accesskey: accesskey,
-          status: status,
-          vehicle_ric: sender,
-        });
-        const config = {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        };
+        console.log(accessKey);
 
-        axios
-          .post(diveraStatusAPI, data, config)
-          .then((res) => {
-            logger.info(`Status für Adresse: ${sender} Status: ${status}`);
-            //console.log(res);
+        const res = await axios.post(
+          diveraStatusAPI,
+          qs.stringify({
+            status: status,
+            vehicle_issi: sender,
+            accesskey: accessKey,
           })
-          .catch((err) => {
-            logger.error(err.response.data.status);
-            logger.error(err.response.data.message);
-          });
-        logger.info(res);
+        );
+
+        logger.info(res.status);
+        receivedData = [];
+        statusEmpfang = false;
         break;
       default:
         break;
@@ -250,7 +246,11 @@ app.get('/send/9', ipAcl, (req, res) => {
 });
 
 app.get('/send/sds', ipAcl, (req, res) => {
-  sendTextSDS(port, 'VLLSLDSD', '1111111');
+  sendTextSDS(
+    port,
+    '#MKX=49,377206331269974Y=6,955583730636792#Brand 3 BMA||Haus Hubwald||Vor der Hub ||66571 Eppelborn',
+    '4115581'
+  );
   res.sendStatus(200);
 });
 
