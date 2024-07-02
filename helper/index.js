@@ -7,13 +7,12 @@ async function sendTextSDS(port, message, issi) {
   var decodedMessage =
     '8200FF01202020202020202020202020202020202020202020202020';
 
-  const data = await getDiveraAlarmData();
   message = await getDiveraAlarmData();
   message = replaceUmlaute(message);
+  message = message.substring(0, 85);
+
   decodedMessage += Buffer.from(message, 'utf8').toString('hex');
   const length = (decodedMessage.length / 2) * 8;
-
-  console.log(`AT+CMGS=${issi},${length}\r\n${decodedMessage}${ctrlZ}`);
 
   try {
     port.write(`AT+CTSDS=12,0,0,0,1\r\n`);
@@ -30,13 +29,11 @@ async function getDiveraAlarmData() {
         '_OtPb99XWS0Pn9rN39mWO1oc2mNlEoi_GoQNG6k9yyndgV4bygFM_Y-JCcqdu0rT',
     },
   });
-  //console.log(response.data);
   if (response.data.success == true) {
     const lastAlarmData = response.data;
     const address = lastAlarmData.data.address.split(',');
-    //console.log(lastAlarmData.data.title);
 
-    console.log(
+    logger.debug(
       `#MKX=${String(lastAlarmData.data.lng).replace('.', ',')}Y=${String(
         lastAlarmData.data.lat
       ).replace('.', ',')}#${lastAlarmData.data.title}||${

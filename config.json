@@ -2,10 +2,10 @@
   "SERIAL_PORT": "COM5",
   "BAUD_RATE": 38400,
   "WEB_PORT": 3333,
-  "IP_ACL": ["127.0.0.1", "192.168.36.61"],
+  "IP_ACL": [],
   "SYSTEM": "DIVERA",
-  "SYSTEM_ACCESSKEY": "_OtPb99XWS0Pn9rN39mWO1oc2mNlEoi_GoQNG6k9yyndgV4bygFM_Y-JCcqdu0rT",
+  "SYSTEM_ACCESSKEY": "",
   "SYSTEM_SEND_DATA": "true",
-  "ISSI_WHITELIST": ["4115581"],
+  "ISSI_WHITELIST": [],
   "MOCK_ENABLED": false
 }

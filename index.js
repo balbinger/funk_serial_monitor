@@ -46,7 +46,6 @@ var atOkay = false;
 
 var routeActive = Boolean('false');
 
-console.log(serialPath);
 const ctrlZ = Buffer.from([26]);
 
 const port = new SerialPort(
@@ -67,7 +66,6 @@ var receivedData = [];
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 parser.on('data', (data) => {
   if (data.startsWith('+CTSDSR')) {
-    console.log('STATUSEMPFANG');
     statusEmpfang = true;
   }
   if (statusEmpfang == true) {
@@ -75,7 +73,7 @@ parser.on('data', (data) => {
     readStatus();
   }
 
-  console.log(data);
+  logger.info(data);
 });
 
 port.write('ATE0\r\n');
@@ -135,14 +133,12 @@ async function readStatus() {
         break;
     }
 
-    console.log(receivedData[0]);
     var postOptions = {
       headers: {
         'Content-Type': 'application/json',
       },
     };
 
-    console.log(system);
     switch (system) {
       case 'ALAMOS':
         const alamosObj = {
@@ -185,10 +181,8 @@ async function readStatus() {
 
         if ([3, 9].includes(status) && issiWhiteList.includes(sender)) {
           const SDSMessage = await getDiveraAlarmData();
-          console.log('SDS');
           sendTextSDS(port, SDSMessage, sender);
         }
-        console.log(accessKey);
 
         const res = await axios.post(
           diveraStatusAPI,
@@ -231,8 +225,6 @@ app.get('/activate', ipAcl, (req, res) => {
 });
 
 app.get('/send/9', ipAcl, (req, res) => {
-  console.log(routeActive);
-
   if (routeActive == true) {
     const ctrlZ = Buffer.from([26]);
     port.write('AT+CTSP=1,3,130\r\n');
@@ -248,8 +240,8 @@ app.get('/send/9', ipAcl, (req, res) => {
 app.get('/send/sds', ipAcl, (req, res) => {
   sendTextSDS(
     port,
-    '#MKX=49,377206331269974Y=6,955583730636792#Brand 3 BMA||Haus Hubwald||Vor der Hub ||66571 Eppelborn',
-    '4115581'
+    '#MKX=49,377206331269974Y=6,955583730636792#Brand 3 BMA||Haus Hubwald||sdfsdfsdfwefwfsddfsfwefwfsfsfeswffwf',
+    '4118423'
   );
   res.sendStatus(200);
 });
@@ -257,20 +249,3 @@ app.get('/send/sds', ipAcl, (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server listening on Port ${PORT}`);
 });
-
-// port.on('data', (data) => {
-//   const statusBody = new StatusModel(
-//     'SerialStatus',
-//     'SerialStatus',
-//     3,
-//     'Wache an',
-//     1115555,
-//     'Merg'
-//   );
-
-//   if (alamosSendData == true) {
-//     console.log(statusBody);
-//   }
-
-//   console.log(`Received data: ${data}`);
-// });
