@@ -56,7 +56,7 @@ const port = new SerialPort(
   },
   (err) => {
     if (err) {
-      logger.error(err);
+      logger.error('Fehler beim öffnen des Ports: ' + err.message);
     }
   }
 );
@@ -180,7 +180,7 @@ async function readStatus() {
         //const SDSMessage = `${lastAlarmData.address} ${lastAlarmData.lat} ${lastAlarmData.lng}`;
 
         if ([3, 9].includes(status) && issiWhiteList.includes(sender)) {
-          const SDSMessage = await getDiveraAlarmData();
+          const SDSMessage = await getDiveraAlarmData(accessKey);
           sendTextSDS(port, SDSMessage, sender);
         }
 

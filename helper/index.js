@@ -22,11 +22,10 @@ async function sendTextSDS(port, message, issi) {
   }
 }
 
-async function getDiveraAlarmData() {
+async function getDiveraAlarmData(accessKey) {
   const response = await axios.get('https://app.divera247.com/api/last-alarm', {
     params: {
-      accesskey:
-        '_OtPb99XWS0Pn9rN39mWO1oc2mNlEoi_GoQNG6k9yyndgV4bygFM_Y-JCcqdu0rT',
+      accesskey: accessKey,
     },
   });
   if (response.data.success == true) {
