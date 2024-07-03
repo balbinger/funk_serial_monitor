@@ -1,4 +1,4 @@
-FROM node:20.15.0-alpine3.20
+FROM node:20
 
 RUN mkdir -p /app/node_modules
 
