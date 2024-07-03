@@ -6,9 +6,9 @@ WORKDIR /app
 
 COPY package*.json ./
 
-USER node
-
 RUN addgroup node dialout
+
+USER node
 
 RUN npm install
 
