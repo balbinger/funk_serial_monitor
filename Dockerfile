@@ -8,6 +8,8 @@ COPY package*.json ./
 
 USER node
 
+RUN addgroup node dialout
+
 RUN npm install
 
 COPY --chown=node:node . .
