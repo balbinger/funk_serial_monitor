@@ -7,7 +7,6 @@ async function sendTextSDS(port, message, issi) {
   var decodedMessage =
     '8200FF01202020202020202020202020202020202020202020202020';
 
-  //message = await getDiveraAlarmData();
   message = replaceUmlaute(message);
   message = message.substring(0, 85);
 
@@ -23,29 +22,39 @@ async function sendTextSDS(port, message, issi) {
 }
 
 async function getDiveraAlarmData(accessKey) {
-  const response = await axios.get('https://app.divera247.com/api/last-alarm', {
-    params: {
-      accesskey: accessKey,
-    },
-  });
-  if (response.data.success == true) {
-    const lastAlarmData = response.data;
-    const address = lastAlarmData.data.address.split(',');
-
-    logger.debug(
-      `#MKX=${String(lastAlarmData.data.lng).replace('.', ',')}Y=${String(
-        lastAlarmData.data.lat
-      ).replace('.', ',')}#${lastAlarmData.data.title}||${
-        address[0]
-      }||${address[1].trimStart()}||${lastAlarmData.data.text}`
+  try {
+    const response = await axios.get(
+      'https://app.divera247.com/api/last-alarm',
+      {
+        params: {
+          accesskey: accessKey,
+        },
+      }
     );
-    return `#MKX=${String(lastAlarmData.data.lng).replace('.', ',')}Y=${String(
-      lastAlarmData.data.lat
-    ).replace('.', ',')}#${lastAlarmData.data.title}||${
-      address[0]
-    }||${address[1].trimStart()}||${lastAlarmData.data.text}`;
+
+    if (response.data.success == true) {
+      const lastAlarmData = response.data;
+      const address = lastAlarmData.data.address.split(',');
+
+      logger.debug(
+        `#MKX=${String(lastAlarmData.data.lng).replace('.', ',')}Y=${String(
+          lastAlarmData.data.lat
+        ).replace('.', ',')}#${lastAlarmData.data.title}||${
+          address[0]
+        }||${address[1].trimStart()}||${lastAlarmData.data.text}`
+      );
+      return `#MKX=${String(lastAlarmData.data.lng).replace(
+        '.',
+        ','
+      )}Y=${String(lastAlarmData.data.lat).replace('.', ',')}#${
+        lastAlarmData.data.title
+      }||${address[0]}||${address[1].trimStart()}||${lastAlarmData.data.text}`;
+    }
+    return '';
+  } catch (err) {
+    logger.error(err);
+    return '';
   }
-  return '';
 }
 
 function replaceUmlaute(text) {
