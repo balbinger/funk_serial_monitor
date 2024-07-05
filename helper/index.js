@@ -7,7 +7,7 @@ async function sendTextSDS(port, message, issi) {
   var decodedMessage =
     '8200FF01202020202020202020202020202020202020202020202020';
 
-  message = await getDiveraAlarmData();
+  //message = await getDiveraAlarmData();
   message = replaceUmlaute(message);
   message = message.substring(0, 85);
 
