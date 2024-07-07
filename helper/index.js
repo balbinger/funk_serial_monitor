@@ -29,7 +29,7 @@ async function getDiveraAlarmData(accessKey) {
         params: {
           accesskey: accessKey,
         },
-      }
+      },
     );
 
     if (response.data.success == true) {
@@ -38,21 +38,31 @@ async function getDiveraAlarmData(accessKey) {
 
       logger.debug(
         `#MKX=${String(lastAlarmData.data.lng).replace('.', ',')}Y=${String(
-          lastAlarmData.data.lat
+          lastAlarmData.data.lat,
         ).replace('.', ',')}#${lastAlarmData.data.title}||${
           address[0]
-        }||${address[1].trimStart()}||${lastAlarmData.data.text}`
+        }||${address[1].trimStart()}||${lastAlarmData.data.text}`,
       );
       return `#MKX=${String(lastAlarmData.data.lng).replace(
         '.',
-        ','
+        ',',
       )}Y=${String(lastAlarmData.data.lat).replace('.', ',')}#${
         lastAlarmData.data.title
       }||${address[0]}||${address[1].trimStart()}||${lastAlarmData.data.text}`;
+    } else {
+      logger.info(`getDiveraAlarmData Respsone Success False`);
     }
     return '';
-  } catch (err) {
-    logger.error(err);
+  } catch (error) {
+    if (`getDiveraAlarmData ${error.response}`) {
+      console.log(`getDiveraAlarmData ${error.response.data}`);
+      console.log(`getDiveraAlarmData ${error.response.status}`);
+      console.log(`getDiveraAlarmData ${error.response.headers}`);
+    } else if (error.request) {
+      console.log(`getDiveraAlarmData ${error.request}`);
+    } else {
+      console.log(`getDiveraAlarmData ${error.message}`);
+    }
     return '';
   }
 }

@@ -58,7 +58,7 @@ try {
       if (err) {
         logger.error('Fehler beim öffnen des Ports: ' + err.message);
       }
-    }
+    },
   );
 
   var receivedData = [];
@@ -140,12 +140,12 @@ try {
       };
 
       switch (system) {
-        case 'ALAMOS':
+        case 'ALAMOS': {
           const alamosObj = {
             type: 'STATUS',
             timestamp: `${dateFormat.asString(
               dateFormat.ISO8601_WITH_TZ_OFFSET_FORMAT,
-              new Date()
+              new Date(),
             )}`,
             sender: 'SerialStatus',
             authorization: 'SerialStatus',
@@ -161,7 +161,7 @@ try {
             .post(
               `https://${alamosHostname}/rest/external/http/status/v2`,
               JSON.stringify(alamosObj),
-              postOptions
+              postOptions,
             )
             .then((res) => {
               logger.info(`Status für Adresse: ${sender} Status: ${status}`);
@@ -174,12 +174,10 @@ try {
           receivedData = [];
           statusEmpfang = false;
           break;
-        case 'DIVERA':
-          //const response = await axios.get(diveraLastAlarmAPI);
-          //const lastAlarmData = response.data;
-          //const SDSMessage = `${lastAlarmData.address} ${lastAlarmData.lat} ${lastAlarmData.lng}`;
-
+        }
+        case 'DIVERA': {
           if ([3, 9].includes(status) && issiWhiteList.includes(sender)) {
+            logger.info('Send SDS Message');
             const SDSMessage = await getDiveraAlarmData(accessKey);
             sendTextSDS(port, SDSMessage, sender);
           }
@@ -190,15 +188,19 @@ try {
               status: status,
               vehicle_issi: sender,
               accesskey: accessKey,
-            })
+            }),
           );
+          if (res.status == 200) {
+            logger.info(`Status erfolgreich an Divera gesendet ${res.status}`);
+          }
 
-          logger.info(res.status);
           receivedData = [];
           statusEmpfang = false;
           break;
-        default:
+        }
+        default: {
           break;
+        }
       }
     }
   }
@@ -241,7 +243,7 @@ try {
     sendTextSDS(
       port,
       '#MKX=49,377206331269974Y=6,955583730636792#Brand 3 BMA||Haus Hubwald||sdfsdfsdfwefwfsddfsfwefwfsfsfeswffwf',
-      '4118423'
+      '4118423',
     );
     res.sendStatus(200);
   });
