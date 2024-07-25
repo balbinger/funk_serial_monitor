@@ -46,9 +46,15 @@
             "hash": "ce9121bc6ecbbf4a61026022092dacfec3f346599b03395becfc12181cb6c531"
         },
         {
+<<<<<<< HEAD
             "date": 1721744637143,
             "name": "log/combined.log.2024-07-23",
             "hash": "dbb207e64f5fd5c0ce74b9f6d2df4f60115d5adccdbad5cab71733d69066bf46"
+=======
+            "date": 1721803384074,
+            "name": "log/combined.log.2024-07-24",
+            "hash": "c2f0e357aa9b6cf87208fb604ed9c7a5d00b1435b99c6ab9667348724b71b0d6"
+>>>>>>> 6c5018f3c1eca9d8048435ebb1f877e8628a217d
         }
     ],
     "hashType": "sha256"

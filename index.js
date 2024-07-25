@@ -9,10 +9,13 @@ const { sendTextSDS, getDiveraAlarmData } = require('./helper');
 const express = require('express');
 const app = express();
 
+const funkmonitor = require('./routes/funkmonitor');
+
 const dateFormat = require('date-format');
 
 const axios = require('axios');
 const { MockBinding } = require('@serialport/binding-mock');
+const { getAllRadioData } = require('./helper/database');
 
 MockBinding.createPort('/dev/ROBOT', {
   echo: true,
@@ -45,6 +48,8 @@ var statusEmpfang = false;
 var atOkay = false;
 
 var routeActive = Boolean('false');
+
+app.set('view engine', 'ejs');
 
 const ctrlZ = Buffer.from([26]);
 try {
@@ -228,6 +233,12 @@ try {
     res.status(200).send();
   });
 
+  app.get('/', async (req, res) => {
+    const data = await getAllRadioData();
+    console.log(data);
+    res.render('pages/index');
+  });
+
   app.get('/send/9', ipAcl, (req, res) => {
     if (routeActive == true) {
       const ctrlZ = Buffer.from([26]);
@@ -241,6 +252,8 @@ try {
     }
   });
 
+  app.use('/funkmonitor/', funkmonitor);
+
   app.get('/send/sds', ipAcl, (req, res) => {
     sendTextSDS(
       port,
@@ -248,10 +261,6 @@ try {
       '4118423',
     );
     res.sendStatus(200);
-  });
-
-  app.get('/', (req, res) => {
-    res.render('pages/index');
   });
 } catch (e) {
   logger.error(e);

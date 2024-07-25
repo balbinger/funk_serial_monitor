@@ -7,7 +7,6 @@ const timezone = () => {
   return moment(new Date())
     .tz('Europe/Berlin')
     .format('YYYY-MM-DDTHH:mm:ss.SSS');
-  return new Date().toLocaleString('de-DE', { timeZone: 'Europe/Berlin' });
 };
 
 const logger = winston.createLogger({

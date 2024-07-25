@@ -7,5 +7,10 @@
   "SYSTEM_ACCESSKEY": "",
   "SYSTEM_SEND_DATA": "true",
   "ISSI_WHITELIST": [],
-  "MOCK_ENABLED": false
+  "MOCK_ENABLED": false,
+  "DATABASE_HOST": "192.168.171.252",
+  "DATABASE_PORT": 3306,
+  "DATABASE_USER": "funk_serial_monitor",
+  "DATABASE_PASSWORD": "E+88YP3-Q3fBVn",
+  "DATABASE_NAME": "funk_serial_monitor"
 }

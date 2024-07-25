@@ -1,0 +1,21 @@
+<h1 class="mb-4">Datenübersicht</h1>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Wert 1</th>
+      <th>Wert 2</th>
+      <th>Wert 3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% data.forEach((item, index) => { %>
+    <tr>
+      <td><%= index + 1 %></td>
+      <td><%= item.value1 %></td>
+      <td><%= item.value2 %></td>
+      <td><%= item.value3 %></td>
+    </tr>
+    <% }); %>
+  </tbody>
+</table>
