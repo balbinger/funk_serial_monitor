@@ -221,6 +221,8 @@ try {
       .map((char) => char.charCodeAt(0))
       .join(' ');
 
+  app.set('view engine', 'ejs');
+
   app.get('/activate', ipAcl, (req, res) => {
     routeActive = Boolean('true');
     res.status(200).send();
@@ -246,6 +248,10 @@ try {
       '4118423',
     );
     res.sendStatus(200);
+  });
+
+  app.get('/', (req, res) => {
+    res.render('pages/index');
   });
 } catch (e) {
   logger.error(e);
