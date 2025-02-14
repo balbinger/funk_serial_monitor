@@ -3,9 +3,11 @@
   "BAUD_RATE": 38400,
   "WEB_PORT": 3333,
   "IP_ACL": [],
-  "SYSTEM": "DIVERA",
+  "SYSTEM": "DIVERA", 
   "SYSTEM_ACCESSKEY": "",
-  "SYSTEM_SEND_DATA": "true",
+  "SYSTEM_SEND_DATA": "true", 
   "ISSI_WHITELIST": [],
-  "MOCK_ENABLED": false
+  "MOCK_ENABLED": false,
+  "STATUS_ISSI":"",
+  "FE2_HOSTNAME":""
 }
