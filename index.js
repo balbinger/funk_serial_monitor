@@ -47,7 +47,7 @@ const alamosSendData =
 var statusEmpfang = false;
 var atOkay = false;
 
-var routeActive = Boolean('false');
+var routeActive = false;
 
 app.set('view engine', 'ejs');
 
@@ -229,7 +229,7 @@ try {
   app.set('view engine', 'ejs');
 
   app.get('/activate', ipAcl, (req, res) => {
-    routeActive = Boolean('true');
+    routeActive = true;
     res.status(200).send();
   });
 
@@ -241,6 +241,7 @@ try {
 
   app.get('/send/9', ipAcl, (req, res) => {
     if (routeActive == true) {
+      logger.info(`Status 9 send by ${req.socket.remoteAddress}`);
       const ctrlZ = Buffer.from([26]);
       port.write('AT+CTSP=1,3,130\r\n');
       port.write('AT+CTSDS=13,0\r\n');

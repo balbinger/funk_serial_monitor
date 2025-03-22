@@ -8,6 +8,8 @@
   "SYSTEM_SEND_DATA": "true",
   "ISSI_WHITELIST": [],
   "MOCK_ENABLED": false,
+  "STATUS_ISSI": "",
+  "FE2_HOSTNAME": "",
   "DATABASE_HOST": "192.168.171.252",
   "DATABASE_PORT": 3306,
   "DATABASE_USER": "funk_serial_monitor",
